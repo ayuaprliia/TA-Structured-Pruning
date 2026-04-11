@@ -1,15 +1,16 @@
 from ultralytics import YOLO
 
-model = YOLO('best.pt')
-
+# base model path
+MODEL_PATH = "YOLO11s_best.pt"
 
 def prunetrain(
+    model,
     train_epochs,
     prune_epochs=0,
     quick_pruning=True,
     prune_ratio=0.5,
     prune_iterative_steps=1,
-    data='coco.yaml',
+    data='Wayang-Kulit-Detc-13/data.yaml',
     name='yolo11',
     imgsz=640,
     batch=8,
@@ -62,17 +63,25 @@ def prunetrain(
             optimizer=optimizer
         )
 
-prunetrain(
-    quick_pruning=True,
-    data='Wayang-Kulit-Detc-13/data.yaml',
-    train_epochs=100,
-    imgsz=640,
-    batch=8,
-    device=[0],
-    name=f'yolo11_quick_prune_0.1',
-    lr0=0.0005,
-    optimizer="SGD",
-    prune_ratio=0.1,
-    prune_iterative_steps=1,
-    sparse_training=False
-)
+
+prune_ratios = [0.3, 0.4, 0.5]
+
+for ratio in prune_ratios:
+    print(f"\n🚀 Running pruning with ratio = {ratio}\n")
+    model = YOLO(MODEL_PATH)
+
+    prunetrain(
+        model=model,
+        quick_pruning=True,
+        data='Wayang-Kulit-Detc-13/data.yaml',
+        train_epochs=100,
+        imgsz=640,
+        batch=8,
+        device=[0],
+        name=f'yolo11s_prune_{int(ratio*100)}',  
+        lr0=0.0005,
+        optimizer="SGD",
+        prune_ratio=ratio,
+        prune_iterative_steps=1,
+        sparse_training=False
+    )
